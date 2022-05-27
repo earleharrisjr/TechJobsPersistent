@@ -32,7 +32,9 @@ namespace TechJobsPersistent.Controllers
         [HttpGet("/Add")]
         public IActionResult AddJob()
         {
-            AddJobViewModel addJobViewModel = new AddJobViewModel();
+            List<Employer> employers = context.Employers.ToList();
+            List<Skill> skills = context.Skills.ToList();
+            AddJobViewModel addJobViewModel = new AddJobViewModel(employers, skills);
             return View(addJobViewModel);
         }
         [HttpPost]
@@ -47,10 +49,24 @@ namespace TechJobsPersistent.Controllers
                 };
                 context.Jobs.Add(newJob);
                 context.SaveChanges();
+
+                int jobId = context.Jobs.Max(j => j.Id);
+                    foreach (string skillId in addJobViewModel.selectedSkills)
+                            {
+                                JobSkill newJobSkill = new JobSkill
+                                {
+                                    JobId = jobId,
+                                    SkillId = int.Parse(skillId)
+                                };
+                    context.JobSkills.Add(newJobSkill);
+                }
+                context.SaveChanges();
                 return Redirect("/Home");
             }
             List<Employer> employers = context.Employers.ToList();
-                return View(employers);
+            List<Skill> skills = context.Skills.ToList();
+            AddJobViewModel viewModel = new AddJobViewModel(employers, skills);
+            return View(viewModel);
         }
 
         public IActionResult Detail(int id)
